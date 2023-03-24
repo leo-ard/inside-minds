@@ -37,7 +37,7 @@ function getStream (type) {
       let gainNode = audioContext.createGain();
       let convolver = audioContext.createConvolver();
         // Nice website for impulses : https://impulses.prasadt.com/
-      let buffer = await fetch("space2.wav").then(response => response.arrayBuffer()).then(buffer => audioContext.decodeAudioData(buffer))
+      let buffer = await fetch("./space2.wav").then(response => response.arrayBuffer()).then(buffer => audioContext.decodeAudioData(buffer))
       convolver.buffer = buffer
 
      
