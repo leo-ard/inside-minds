@@ -27,24 +27,26 @@ function getStream (type) {
   constraints[type] = true;
   
   getUserMedia(constraints)
-    .then(function (stream) {
+    .then(async function (stream) {
+        
       var mediaControl = document.querySelector(type);
 
       var audioContext = new AudioContext();
       var source = audioContext.createMediaStreamSource(stream);
-      var source2 = audioContext.createMediaStreamSource(stream);
       let audioDelay = audioContext.createDelay(10);
-      let audioDelay2 = audioContext.createDelay(10);
       let gainNode = audioContext.createGain();
-      let gainNode2 = audioContext.createGain();
-      let ocillator = audioContext.createOscillator();
-      let ocillator2 = audioContext.createOscillator();
+      let convolver = audioContext.createConvolver();
+        // Nice website for impulses : https://impulses.prasadt.com/
+      let buffer = await fetch("space2.wav").then(response => response.arrayBuffer()).then(buffer => audioContext.decodeAudioData(buffer))
+      convolver.buffer = buffer
+
+     
     
       audioDelay.delayTime.value = 3;
-      audioDelay2.delayTime.value = 2;
+      //audioDelay2.delayTime.value = 2;
       
       
-      source.connect(audioDelay).connect(gainNode).connect(audioContext.destination);
+      source.connect(audioDelay).connect(convolver).connect(gainNode).connect(audioContext.destination);
       //source2.connect(audioDelay2).connect(gainNode).connect(ocillator).connect(audioContext.destination);
       console.log(audioDelay)
       console.log(audioContext)
@@ -60,7 +62,7 @@ function getStream (type) {
       //  mediaControl.src = (window.URL || window.webkitURL).createObjectURL(stream);
       //}
       
-      mediaControl.play();
+      //mediaControl.play();
     })
     .catch(function (err) {
       alert('Error: ' + err);
