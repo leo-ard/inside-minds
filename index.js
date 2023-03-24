@@ -1,60 +1,68 @@
-let audioContext = new AudioContext();
-let stream;
-let recorder;
-
-const recordButton = document.getElementById("record");
-const stopButton = document.getElementById("stop");
-const playback = document.getElementById("playback");
-
-let DELAY = 2000;
-
-let chunks = [];
-let currentChunk = false;
-
-recordButton.addEventListener("click", async () => {
-    chunks = [];
-    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    recorder = new MediaRecorder(stream);
+function getUserMedia(constraints) {
+  // if Promise-based API is available, use it
+  if (navigator.mediaDevices) {
+    return navigator.mediaDevices.getUserMedia(constraints);
+  }
     
-    recorder.addEventListener("dataavailable", event => {
-        console.log(event.data);
-        //chunks.push(event.data);
-        currentChunk = event.data;
-
-        let audioBlob = new Blob([currentChunk], { type: "audio/ogg; codecs=opus" });
-        let audioUrl = URL.createObjectURL(audioBlob);
-        let audio = new Audio(audioUrl);
-        audio.play();
-
+  // otherwise try falling back to old, possibly prefixed API...
+  var legacyApi = navigator.getUserMedia || navigator.webkitGetUserMedia ||
+    navigator.mozGetUserMedia || navigator.msGetUserMedia;
+    
+  if (legacyApi) {
+    // ...and promisify it
+    return new Promise(function (resolve, reject) {
+      legacyApi.bind(navigator)(constraints, resolve, reject);
     });
-    
-    recorder.start(DELAY);
-    
-    recordButton.disabled = true;
-    stopButton.disabled = false;
-});
+  }
+}
 
-stopButton.addEventListener("click", () => {
-    
-    recorder.stop();
-    stream.getTracks().forEach(track => track.stop());
-    
-    recordButton.disabled = false;
-    stopButton.disabled = true;
-});
+function getStream (type) {
+  if (!navigator.mediaDevices && !navigator.getUserMedia && !navigator.webkitGetUserMedia &&
+    !navigator.mozGetUserMedia && !navigator.msGetUserMedia) {
+    alert('User Media API not supported.');
+    return;
+  }
 
-//function delayPlayback() {
-//    const source = audioContext.createBufferSource();
-//    source.buffer = audioContext.createBuffer(1, audioContext.sampleRate * 1, audioContext.sampleRate);
-//    source.buffer.getChannelData(0).fill(0);
-//    
-//    const delay = audioContext.createDelay(1);
-//    delay.delayTime.value = 0.5; // Change this value to adjust the delay time
-//    
-//    source.connect(delay);
-//    delay.connect(audioContext.destination);
-//    
-//    source.start();
-//}
+  var constraints = {};
+  constraints[type] = true;
+  
+  getUserMedia(constraints)
+    .then(function (stream) {
+      var mediaControl = document.querySelector(type);
 
-//playback.addEventListener("play", delayPlayback);
+      var audioContext = new AudioContext();
+      var source = audioContext.createMediaStreamSource(stream);
+      var source2 = audioContext.createMediaStreamSource(stream);
+      let audioDelay = audioContext.createDelay(10);
+      let audioDelay2 = audioContext.createDelay(10);
+      let gainNode = audioContext.createGain();
+      let gainNode2 = audioContext.createGain();
+      let ocillator = audioContext.createOscillator();
+      let ocillator2 = audioContext.createOscillator();
+    
+      audioDelay.delayTime.value = 3;
+      audioDelay2.delayTime.value = 2;
+      
+      
+      source.connect(audioDelay).connect(gainNode).connect(audioContext.destination);
+      //source2.connect(audioDelay2).connect(gainNode).connect(ocillator).connect(audioContext.destination);
+      console.log(audioDelay)
+      console.log(audioContext)
+      console.log(source)
+      console.log(stream)
+      console.log(audioContext.destination)
+      
+      //if ('srcObject' in mediaControl) {
+      //  mediaControl.srcObject = stream;
+      //} else if (navigator.mozGetUserMedia) {
+      //  mediaControl.mozSrcObject = stream;
+      //} else {
+      //  mediaControl.src = (window.URL || window.webkitURL).createObjectURL(stream);
+      //}
+      
+      mediaControl.play();
+    })
+    .catch(function (err) {
+      alert('Error: ' + err);
+    });
+}
