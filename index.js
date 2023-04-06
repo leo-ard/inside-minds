@@ -35,22 +35,26 @@ function getStream (type) {
 
       var audioContext = new AudioContext();
       var source = audioContext.createMediaStreamSource(stream);
-      let audioDelay = audioContext.createDelay(10);
-      let gainNode = audioContext.createGain();
+      let audioDelay1 = audioContext.createDelay(10);
+      let audioDelay2 = audioContext.createDelay(10);
+      let gainNode1 = audioContext.createGain();
+      let gainNode2 = audioContext.createGain();
       let convolver = audioContext.createConvolver();
         // Nice website for impulses : https://impulses.prasadt.com/
-      let buffer = await fetch("./space2.wav").then(response => response.arrayBuffer()).then(buffer => audioContext.decodeAudioData(buffer))
+      let buffer = await fetch("./singularity.wav").then(response => response.arrayBuffer()).then(buffer => audioContext.decodeAudioData(buffer))
       convolver.buffer = buffer
 
-      gainNode.gain.value = 1;
-      volume = (v) => gainNode.gain.value=v;
-     
+      gainNode1.gain.value = 1;
+      gainNode2.gain.value = 0.5;
+      volume = (v) => {console.log(v/2);gainNode1.gain.value=v; gainNode2.gain.value=v/2}
     
-      audioDelay.delayTime.value = 3;
+      audioDelay1.delayTime.value = 3;
+      audioDelay2.delayTime.value = 1.5;
       //audioDelay2.delayTime.value = 2;
       
       
-      source.connect(audioDelay).connect(convolver).connect(gainNode).connect(audioContext.destination);
+      source.connect(audioDelay1).connect(convolver).connect(gainNode1).connect(audioContext.destination);
+      source.connect(audioDelay2).connect(convolver).connect(gainNode2).connect(audioContext.destination);
       //source2.connect(audioDelay2).connect(gainNode).connect(ocillator).connect(audioContext.destination);
       
       //if ('srcObject' in mediaControl) {
