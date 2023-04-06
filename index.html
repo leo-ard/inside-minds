@@ -6,6 +6,12 @@
         
         <script src="./index.js"></script>
         <button type="button" onclick="getStream('audio')">Grab audio</button>
+        <br />
+        <p>
+        Volume :
+        <input type="range" step="0.1" min="0" max="10" value="1" oninput="volume(this.value)" onchange="volume(this.value)" style="width:100%;"> </input>
+        </p>
+
     </body>
 </html>
 

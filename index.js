@@ -16,6 +16,8 @@ function getUserMedia(constraints) {
   }
 }
 
+volume=null
+
 function getStream (type) {
   if (!navigator.mediaDevices && !navigator.getUserMedia && !navigator.webkitGetUserMedia &&
     !navigator.mozGetUserMedia && !navigator.msGetUserMedia) {
@@ -40,6 +42,8 @@ function getStream (type) {
       let buffer = await fetch("./space2.wav").then(response => response.arrayBuffer()).then(buffer => audioContext.decodeAudioData(buffer))
       convolver.buffer = buffer
 
+      gainNode.gain.value = 1;
+      volume = (v) => gainNode.gain.value=v;
      
     
       audioDelay.delayTime.value = 3;
@@ -48,11 +52,6 @@ function getStream (type) {
       
       source.connect(audioDelay).connect(convolver).connect(gainNode).connect(audioContext.destination);
       //source2.connect(audioDelay2).connect(gainNode).connect(ocillator).connect(audioContext.destination);
-      console.log(audioDelay)
-      console.log(audioContext)
-      console.log(source)
-      console.log(stream)
-      console.log(audioContext.destination)
       
       //if ('srcObject' in mediaControl) {
       //  mediaControl.srcObject = stream;
